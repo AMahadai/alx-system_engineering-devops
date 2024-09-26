@@ -1,18 +1,13 @@
-# Puppet manifest to optimize Nginx configuration for handling load
+# Increases the amount of traffic an Nginx server can handle.
 
-class nginx_config {
-    file { '/etc/nginx/nginx.conf':
-        ensure  => file,
-        owner   => 'root',
-        group   => 'root',
-        mode    => '0644',
-        content => template('nginx/nginx.conf.erb'),
-        notify  => Service['nginx'],
-    }
-}
+# Increase the ULIMIT of the default file
+exec { 'fix--for-nginx':
+  command => 'sed -i "s/15/4096/" /etc/default/nginx',
+  path    => '/usr/local/bin/:/bin/'
+} ->
 
-service { 'nginx':
-    ensure  => running,
-    enable  => true,
-    require => Class['nginx_config'],
+# Restart Nginx
+exec { 'nginx-restart':
+  command => 'nginx restart',
+  path    => '/etc/init.d/'
 }
